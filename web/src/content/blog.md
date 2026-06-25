@@ -65,13 +65,13 @@ In summary, we first defined an empirical model for how our log price series rel
 Picking good estimates for $$ \gamma $$ and $$ \mu $$ can be formulated as solving the optimization problem
 
 ```math
-\text{arg min}_{(\mu, \gamma)} \ \ \mathcal{L}(\mu,\gamma)
+(\mu, \gamma) := \underset{(\mu, \gamma)}{\text{arg min}}\ \ \mathcal{L}(\mu,\gamma)
 ```
 
 for some choice of loss function $$ \mathcal{L} $$. In many cases we take the ordinary least squares (OLS) loss function, namely 
 
 ```math
-\mathcal{L} = \sum_t (y_t - \gamma x_t - \mu)^2
+\mathcal{L}(\mu, \gamma) = \sum_t (y_t - \gamma x_t - \mu)^2
 ```
 
 But, there are many choices for what $$ \mathcal{L} $$ may be, for example in (pairs trading book) Ch 7, they discuss a choice for $$ \mathcal{L} $$ that resembles the OLS except at each $$ t $$ there is a special normalization by a variance term.
