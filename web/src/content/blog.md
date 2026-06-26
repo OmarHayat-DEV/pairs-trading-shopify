@@ -189,7 +189,10 @@ In live trading we need to account for realities of actualizing trades. This cut
 
 ## Dashboard 
 
-The dashboard gives a simple interactive backtest of the rolling-window strategy described above using the last two years of data. It exposes three parameters: the lookback period $$ L $$, the entry z-score threshold, and the exit z-score threshold.
+The dashboard gives a simple interactive backtest of the rolling-window strategy described above using the last two years of data. It offers three parameters: 
+- the lookback period $$ L $$
+- the entry z-score threshold
+- the exit z-score threshold.
 
 At each time $$ t $$, the model estimates $$ \mu_t $$ and $$ \gamma_t $$ using the previous $$ L $$ observations of the log-price relationship
 
@@ -202,14 +205,19 @@ The current spread is then computed as
 ```math
 \epsilon_t = y_t - \gamma_t x_t - \mu_t.
 ```
-
-We standardize this spread using the mean and standard deviation of the fitted spread over the same lookback window:
+To build threshold bands we isolate $$ p_t^A $$, recall $$ y_t = \text{log}(p_t^A)$$. This gives us,
 
 ```math
-z_t = \frac{\epsilon_t - \bar{\epsilon}_{t,L}}{\sigma_{t,L}}.
+p_t^A = \exp(\gamma_t x_t + \mu_t + \epsilon_t)
 ```
 
-The dashboard also maps these z-score thresholds back into implied SHOP.TO price bands. For a threshold $$ z^* $$, the corresponding upper and lower SHOP.TO levels are
+To identify the z-score, we standardize this spread using the mean, $$\bar{\epsilon}_{t,L}$$, and standard deviation, $$\ \sigma_{t,L} \ $$,  of the fitted spread over the same lookback window,
+
+```math
+z_t = \frac{\epsilon_t - \bar{\epsilon}_{t,L}}{\sigma_{t,L}} \ \implies \epsilon_t = z_t \sigma_{t,L} + \bar{\epsilon}_{t,L}
+```
+
+The dashboard also maps these z-score thresholds back into implied SHOP.TO threshold bands. For a threshold $$ z^* $$, the corresponding upper and lower SHOP.TO levels are
 
 ```math
 p_{upper,t}^A = \exp(\gamma_t x_t + \mu_t + \bar{\epsilon}_{t,L} + z^*\sigma_{t,L})
@@ -249,7 +257,20 @@ Using these signed quantities, daily PnL is
 \text{PnL}_t = q_A(p_t^A - p_{t-1}^A) + q_B(p_t^B - p_{t-1}^B),
 ```
 
-and the dashboard plots cumulative PnL over time. The first chart overlays SHOP.TO with SHOP converted to CAD and shows the implied entry and exit bands. The second shows our cumulative PnL overtime with this strategy, in CAD.
+and the dashboard plots cumulative PnL over time. The cumulative PnL is identified as the running sum of daily PnL's and characterized by the recursive relationship,
+
+```math
+\text{CumPnL}_t
+=
+\text{CumPnL}_{t-1}
++
+q_{A,t-1}(p_t^A - p_{t-1}^A)
++
+q_{B,t-1}(p_t^B - p_{t-1}^B)
+```
+where the base case, $$ \text{CumPnL}_0 = 0 $$.
+
+The first chart overlays SHOP.TO with SHOP converted to CAD and shows the implied entry and exit bands. The second shows our cumulative PnL overtime with this strategy, in CAD.
 
 ## References
 
