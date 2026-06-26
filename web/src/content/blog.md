@@ -229,7 +229,7 @@ Each entry uses $$ \$1000 $$ gross exposure, split evenly across the two legs:
 \text{gross exposure} = \$500 \text{ long leg} + \$500 \text{ short leg}.
 ```
 
-This gross exposure is a simplified CAD-equivalent convention. The SHOP.TO leg is already denominated in CAD, while the SHOP leg trades in USD and is converted to CAD in the dashboard using the observed CAD/USD close. In live trading, this would be more nuanced: the realized exposure depends on executable FX rates, commissions, bid-ask spreads, short borrow costs, financing, and how the USD leg is actually funded or hedged.
+This gross exposure is a simplified CAD-equivalent convention. The SHOP.TO leg is already denominated in CAD, while the SHOP leg trades in USD and is converted to CAD in the dashboard using the observed CAD/USD close. In live trading, this would be more nuanced, as PnL is subject to loses from entering / exiting positions.
 
 PnL is marked in CAD using the FX-adjusted SHOP price. Here $$ q_A $$ and $$ q_B $$ are the signed quantities held in the two legs, where $$ A $$ denotes SHOP.TO and $$ B $$ denotes SHOP adjusted to CAD. For a long-spread entry at time $$ \tau $$,
 
