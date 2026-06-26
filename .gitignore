@@ -1,12 +1,18 @@
 # Env files
 *.env
 
+# macOS
+.DS_Store
+
 # Python
-__pycache__/*
+__pycache__/
 
 # Node / Astro
 node_modules/
 dist/
 .astro/
+
+# Local generated web artifacts
+web/data/
 
 todo.md

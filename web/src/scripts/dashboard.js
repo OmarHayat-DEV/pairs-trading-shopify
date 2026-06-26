@@ -11,7 +11,7 @@ const els = {
   entryValue: document.querySelector("#entry-value"),
   exitValue: document.querySelector("#exit-value"),
   error: document.querySelector("#dashboard-error"),
-  price: document.querySelector("#price-chart"),
+  band: document.querySelector("#band-chart"),
   pnl: document.querySelector("#pnl-chart"),
 };
 
@@ -82,9 +82,16 @@ function spread(row, fit) {
 function simulate({ lookback, entryZ, exitZ }) {
   const dates = rows.map((row) => row.date);
   const cumulativePnl = Array(rows.length).fill(0);
-  const longEntries = [];
-  const shortEntries = [];
+  const longSpreadEntries = [];
+  const shortSpreadEntries = [];
   const exits = [];
+  const bands = {
+    dates: Array(rows.length).fill(null),
+    entryUpper: Array(rows.length).fill(null),
+    entryLower: Array(rows.length).fill(null),
+    exitUpper: Array(rows.length).fill(null),
+    exitLower: Array(rows.length).fill(null),
+  };
   let pnl = 0;
   let position = null;
 
@@ -102,16 +109,23 @@ function simulate({ lookback, entryZ, exitZ }) {
     const historyMean = mean(history);
     const historyStdev = stdev(history, historyMean);
     const z = historyStdev === 0 ? 0 : (spread(row, fit) - historyMean) / historyStdev;
+    const center = fit.gamma * row.logShopCad + fit.mu + historyMean;
+
+    bands.dates[i] = row.date;
+    bands.entryUpper[i] = Math.exp(center + entryZ * historyStdev);
+    bands.entryLower[i] = Math.exp(center - entryZ * historyStdev);
+    bands.exitUpper[i] = Math.exp(center + exitZ * historyStdev);
+    bands.exitLower[i] = Math.exp(center - exitZ * historyStdev);
 
     if (position && Math.abs(z) <= exitZ) {
       exits.push(marker(row));
       position = null;
     } else if (!position && z <= -entryZ) {
       position = enter(row, 1);
-      longEntries.push(marker(row));
+      longSpreadEntries.push(marker(row));
     } else if (!position && z >= entryZ) {
       position = enter(row, -1);
-      shortEntries.push(marker(row));
+      shortSpreadEntries.push(marker(row));
     }
 
     cumulativePnl[i] = pnl;
@@ -122,7 +136,7 @@ function simulate({ lookback, entryZ, exitZ }) {
     if (cumulativePnl[i] === 0) cumulativePnl[i] = cumulativePnl[i - 1];
   }
 
-  return { dates, cumulativePnl, longEntries, shortEntries, exits };
+  return { dates, cumulativePnl, longSpreadEntries, shortSpreadEntries, exits, bands };
 }
 
 function enter(row, direction) {
@@ -134,7 +148,7 @@ function enter(row, direction) {
 }
 
 function marker(row) {
-  return { date: row.date, y: row.shopTo };
+  return { date: row.date, shop: row.shop, shopCad: row.shopCad, shopTo: row.shopTo };
 }
 
 function draw() {
@@ -148,15 +162,25 @@ function draw() {
   els.exitValue.value = exitZ.toFixed(1);
 
   Plotly.react(
-    els.price,
+    els.band,
     [
       line("SHOP.TO (CAD)", rows.map((row) => row.date), rows.map((row) => row.shopTo)),
-      line("SHOP (USD)", rows.map((row) => row.date), rows.map((row) => row.shop)),
-      dots("Enter long", result.longEntries, "#15803d"),
-      dots("Enter short", result.shortEntries, "#b91c1c"),
-      dots("Exit", result.exits, "#111111"),
+      line("SHOP adjusted to CAD", rows.map((row) => row.date), rows.map((row) => row.shopCad)),
+      bandLine("Entry upper", result.bands.dates, result.bands.entryUpper, "dash", "#666666"),
+      bandLine("Entry lower", result.bands.dates, result.bands.entryLower, "dash", "#666666"),
+      bandLine("Exit upper", result.bands.dates, result.bands.exitUpper, "dot", "#aaaaaa"),
+      bandLine("Exit lower", result.bands.dates, result.bands.exitLower, "dot", "#aaaaaa"),
+      dots("Long SHOP.TO", result.longSpreadEntries, "shopTo", "#15803d", false),
+      dots("Short SHOP adjusted to CAD", result.longSpreadEntries, "shopCad", "#b91c1c", false),
+      dots("Short SHOP.TO", result.shortSpreadEntries, "shopTo", "#b91c1c", false),
+      dots("Long SHOP adjusted to CAD", result.shortSpreadEntries, "shopCad", "#15803d", false),
+      dots("Exit SHOP.TO", result.exits, "shopTo", "#111111", false),
+      dots("Exit SHOP adjusted to CAD", result.exits, "shopCad", "#111111", false),
+      legendDot("Long", "#15803d"),
+      legendDot("Short", "#b91c1c"),
+      legendDot("Exit", "#111111"),
     ],
-    layout("Raw Price Series", "Price in original currency")
+    layout("SHOP.TO Signal Bands", "Price (CAD)")
   );
 
   Plotly.react(
@@ -170,14 +194,38 @@ function line(name, x, y) {
   return { name, x, y, type: "scatter", mode: "lines" };
 }
 
-function dots(name, points, color) {
+function bandLine(name, x, y, dash, color) {
+  return {
+    name,
+    x,
+    y,
+    type: "scatter",
+    mode: "lines",
+    line: { color, dash, width: 1.5 },
+  };
+}
+
+function dots(name, points, key, color, showlegend = true) {
   return {
     name,
     x: points.map((point) => point.date),
-    y: points.map((point) => point.y),
+    y: points.map((point) => point[key]),
     type: "scatter",
     mode: "markers",
     marker: { color, size: 9 },
+    showlegend,
+  };
+}
+
+function legendDot(name, color) {
+  return {
+    name,
+    x: [null],
+    y: [null],
+    type: "scatter",
+    mode: "markers",
+    marker: { color, size: 9 },
+    showlegend: true,
   };
 }
 

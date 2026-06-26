@@ -187,8 +187,6 @@ In live trading we need to account for realities of actualizing trades. This cut
 - cost of sourcing live data
 
 
-
-
 ## Dashboard 
 
 The dashboard gives a simple interactive backtest of the rolling-window strategy described above using the last two years of data. It exposes three parameters: the lookback period $$ L $$, the entry z-score threshold, and the exit z-score threshold.
@@ -210,6 +208,18 @@ We standardize this spread using the mean and standard deviation of the fitted s
 ```math
 z_t = \frac{\epsilon_t - \bar{\epsilon}_{t,L}}{\sigma_{t,L}}.
 ```
+
+The dashboard also maps these z-score thresholds back into implied SHOP.TO price bands. For a threshold $$ z^* $$, the corresponding upper and lower SHOP.TO levels are
+
+```math
+p_{upper,t}^A = \exp(\gamma_t x_t + \mu_t + \bar{\epsilon}_{t,L} + z^*\sigma_{t,L})
+```
+
+```math
+p_{lower,t}^A = \exp(\gamma_t x_t + \mu_t + \bar{\epsilon}_{t,L} - z^*\sigma_{t,L}).
+```
+
+The entry bands use the entry z-score threshold and the exit bands use the exit z-score threshold.
 
 If $$ z_t $$ is below the negative entry threshold, the strategy enters a long-spread position: long SHOP.TO and short FX-adjusted SHOP. If $$ z_t $$ is above the positive entry threshold, it enters a short-spread position: short SHOP.TO and long FX-adjusted SHOP. An open position exits once $$ |z_t| $$ falls below the exit threshold.
 
@@ -239,7 +249,7 @@ Using these signed quantities, daily PnL is
 \text{PnL}_t = q_A(p_t^A - p_{t-1}^A) + q_B(p_t^B - p_{t-1}^B),
 ```
 
-and the dashboard plots cumulative PnL over time. The first chart shows the raw price series in their original trading currencies and marks long entries, short entries, and exits.
+and the dashboard plots cumulative PnL over time. The first chart overlays SHOP.TO with SHOP converted to CAD and shows the implied entry and exit bands. The second shows our cumulative PnL overtime with this strategy, in CAD.
 
 ## References
 
