@@ -3,9 +3,39 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Pairs Trading Dashboard">
-  <section class="page-shell hero-shell">
-    <p class="eyebrow">Pairs Trading Shopify</p>
-    <h1>Dashboard</h1>
-    <p>Dashboard coming soon.</p>
+  <section class="dashboard-shell">
+    <h1 class="dashboard-title">Statistical Arbitrage Analysis for Pairs Trading of SHOP (TSX) and SHOP (NASDAQ)</h1>
+    <p class="dashboard-intro">
+      Rolling-window pairs strategy over the last two years of SHOP data. The first chart shows raw SHOP.TO and SHOP prices in their original currencies with entry and exit markers; the second chart shows cumulative mark-to-market PnL in CAD.
+      <br><br>
+      Each entry uses $1000 gross exposure: $500 per leg, sized using CAD-equivalent prices. 
+      <br><br>
+      Fees, slippage, borrow costs, and FX execution are not included.
+    </p>
+
+    <div class="controls" aria-label="Dashboard controls">
+      <label>
+        <span>Lookback (days) <output id="lookback-value">60</output></span>
+        <input id="lookback" type="range" min="20" max="90" step="1" value="60" />
+      </label>
+
+      <label>
+        <span>Entry z-score <output id="entry-value">2.0</output></span>
+        <input id="entry-z" type="range" min="1" max="3" step="0.1" value="2" />
+      </label>
+
+      <label>
+        <span>Exit z-score <output id="exit-value">0.5</output></span>
+        <input id="exit-z" type="range" min="0" max="0.8" step="0.1" value="0.5" />
+      </label>
+    </div>
+
+    <div id="dashboard-error" class="dashboard-error" hidden></div>
+    <div id="price-chart" class="chart-card"></div>
+    <div id="pnl-chart" class="chart-card"></div>
   </section>
+
+  <script>
+    import "../scripts/dashboard.js";
+  </script>
 </BaseLayout>

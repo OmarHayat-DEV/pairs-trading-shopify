@@ -10,6 +10,7 @@
   "dependencies": {
     "astro": "^5.12.8",
     "katex": "^0.16.22",
+    "plotly.js-dist-min": "^3.6.0",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0"
   }

@@ -4,23 +4,31 @@ Typical in pairs trading, we begin by looking for a pair of securities that have
 
 This reasonable justification sometimes comes from a good intuition or hueristic for how two securities __should__ behave in relation to one another. Then, statisical methods can be applied to support or disprove the initial heuristic.
 
-In this example, we consider the two securities SHOP.TO (traded on the TSX) and SHOP (traded on the NYSE). Since the underlying value for each security is determined by the performance of Shopify the company, we are really betting on the Law of One Price (LOP) (cochrane, 2005).
+In this example, we consider the two securities SHOP.TO (traded on the TSX) and SHOP (traded on the NYSE). Since the underlying value for each security is determined by the performance of Shopify the company, we are really betting on the Law of One Price (LOP) (Cochrane, 2005).
 
 We expect that the spread here should be very tight. When we do observe increase in spread, it's a manifestation of inefficiency (lag) in the respective exchanges adherence to the LOP. 
 
 We may futher theorize what caused this inefficiency such as irregular trading behaviour on one exchange or other equity / FX market microstructures, but this is not the focus of our investigation. 
 
-> Note: The LOP gets used in many contexts. In most I find, its brought up as a guiding principle, not a mathematical axiom being applied. I introduce it also in this way. I recommend (cochrane, 2005) for a rigorous treatment of this principle. 
+> Note: The LOP gets used in many contexts. In most I find, its brought up as a guiding principle, not a mathematical axiom being applied. I introduce it also in this way. I recommend Cochrane (2005) for a rigorous treatment of this principle. 
 
 ## Evaluating Fit for Pairs Trading 
 
 We first observe our two securities of interest, SHOP.TO and SHOP, as raw price time-series in their original currency. Since SHOP is traded as a USD security, to fairly compare it to SHOP.TO we need to convert its value to CAD. We do so using the market end FX exchange rate for that date. Note this is an assumption we make in our analysis, since the FX market end is at 5pm, whereas SHOP.TO and SHOP market end is at 4pm. In practice we would rely on the exchange rate at 4pm. 
 
-**GRAPH OF SHOP.TO, SHOP, FX RATE**
+<figure>
+  <img src="../images/raw-price-series-2yr.svg" alt="Raw SHOP.TO and SHOP price series over the last two years">
+</figure>
+
+<figure>
+  <img src="../images/raw-fx-series-2yr.svg" alt="CAD/USD exchange rate over the last two years">
+</figure>
 
 Adjusting for the exchange rate we see the overlay of the two series in CAD.
 
-**GRAPH OF SHOP.TO and SHOP adjusted using FX Rate**
+<figure>
+  <img src="../images/adjusted-price-series-2yr.svg" alt="SHOP.TO and SHOP adjusted to CAD over the last two years">
+</figure>
 
 Reading a price graph alone does little good in determining fit for trading. Instead, we turn to statistical tools to test the relationship between these two time series.  
 
@@ -50,6 +58,10 @@ For example, a $$ \$ 50 $$ raw deviation can mean drastically different things d
 
 This is why often log series are used in place of raw price series. If instead we let $$ y_t = \text{log} (p_t^A) $$ and $$ x_t = \text{log} (p_t^B) $$, then our model becomes,
 
+<figure>
+  <img src="../images/log-price-series-2yr.svg" alt="Log price series over the last two years">
+</figure>
+
 ```math
 y_t = \gamma \cdot x_t + \mu + \epsilon_t
 ```
@@ -74,21 +86,35 @@ for some choice of loss function $$ \mathcal{L} $$. In many cases we take the or
 \mathcal{L}(\mu, \gamma) = \sum_t (y_t - \gamma x_t - \mu)^2
 ```
 
-But, there are many choices for what $$ \mathcal{L} $$ may be, for example in (pairs trading book) Ch 7, they discuss a choice for $$ \mathcal{L} $$ that resembles the OLS except at each $$ t $$ there is a special normalization by a variance term.
+But, there are many choices for what $$ \mathcal{L} $$ may be. For example, (Vidyamurthy, 2004, Ch. 7) discusses an OLS-like loss function that normalizes each residual term by a special variance term, which changes how deviations are penalized across time .
+
+
 
 Once we decide on our parameters, we can identify our spread series $$ \epsilon_t $$. Earlier we mentioned that working with log price series improves the interpretability of the spread series. It also positions the spread series for a more __natural__ test of the statistical property of time series known as __stationarity__. 
 
 Natural in the sense that, if we were working with raw series the range of the spread will likely increase over time as the underlying securities price increases. The data becomes noisier due to this variance overtime in the range of our spread. Think of it like the music getting louder over time. In the log price series spread, we expect the spread to stay roughly the same range.  
 
+
 This also matters in designing a trading algorithm. Working with the spread for the log price series gives stable variance across time. If we were to work with the price spread series, we would need a variable threshold that adjusts as the underlying asset prices adjusts.
+
 
 Returning to __stationarity__, this condition will tell us if there is meaningful mean reverting behaviour in the spread series. If so, we can design a trading strategy informed by this mean reversion.
 
 ### Stationarity of the Spread
 
+Returning to our pairs example, we identify $$\ \epsilon_{t} \ $$ for the raw price series and log price series, using the full 2 years historic dataset in our OLS regression. 
 
+#### Raw Price Series Spread
+<figure>
+  <img src="../images/raw-spread-series-2yr.svg" alt="Raw price spread over the last two years">
+</figure>
 
-### Picking Pairs with Cointegration Testing
+#### Log Price Series Spread
+<figure>
+  <img src="../images/model-spread-series-2yr.svg" alt="Full-sample OLS log spread over the last two years">
+</figure>
+
+As we expect, the log price series spread has less variability on its range, staying stable between $$\pm 0.010 $$. Both however, compared to our original price series, display mean reverting behaviour, at least visually. We can use futher statistical techniques to verify this for certain.
 
 
 ## Making Money on the Spread
@@ -152,7 +178,6 @@ The above two questions also have interactions between each other, which is some
 
 In a scenario where the two securities being traded are not as obviously related, we may also have to do extensive testing on their related movement through cointegration testing. In ours, we refrain from cointegration testing because of the nature of the securities.
 
-### Case Study
 
 ### Live Trading
 
@@ -164,16 +189,60 @@ In live trading we need to account for realities of actualizing trades. This cut
 
 
 
-### Theorizing Spread Dynamics
+## Dashboard 
 
+The dashboard gives a simple interactive backtest of the rolling-window strategy described above using the last two years of data. It exposes three parameters: the lookback period $$ L $$, the entry z-score threshold, and the exit z-score threshold.
+
+At each time $$ t $$, the model estimates $$ \mu_t $$ and $$ \gamma_t $$ using the previous $$ L $$ observations of the log-price relationship
+
+```math
+y_s = \gamma_t x_s + \mu_t + \epsilon_s, \quad s \in \{t-L, \ldots, t-1\}.
+```
+
+The current spread is then computed as
+
+```math
+\epsilon_t = y_t - \gamma_t x_t - \mu_t.
+```
+
+We standardize this spread using the mean and standard deviation of the fitted spread over the same lookback window:
+
+```math
+z_t = \frac{\epsilon_t - \bar{\epsilon}_{t,L}}{\sigma_{t,L}}.
+```
+
+If $$ z_t $$ is below the negative entry threshold, the strategy enters a long-spread position: long SHOP.TO and short FX-adjusted SHOP. If $$ z_t $$ is above the positive entry threshold, it enters a short-spread position: short SHOP.TO and long FX-adjusted SHOP. An open position exits once $$ |z_t| $$ falls below the exit threshold.
+
+Each entry uses $$ \$1000 $$ gross exposure, split evenly across the two legs:
+
+```math
+\text{gross exposure} = \$500 \text{ long leg} + \$500 \text{ short leg}.
+```
+
+This gross exposure is a simplified CAD-equivalent convention. The SHOP.TO leg is already denominated in CAD, while the SHOP leg trades in USD and is converted to CAD in the dashboard using the observed CAD/USD close. In live trading, this would be more nuanced: the realized exposure depends on executable FX rates, commissions, bid-ask spreads, short borrow costs, financing, and how the USD leg is actually funded or hedged.
+
+PnL is marked in CAD using the FX-adjusted SHOP price. Here $$ q_A $$ and $$ q_B $$ are the signed quantities held in the two legs, where $$ A $$ denotes SHOP.TO and $$ B $$ denotes SHOP adjusted to CAD. For a long-spread entry at time $$ \tau $$,
+
+```math
+q_A = \frac{500}{p_\tau^A}, \quad q_B = -\frac{500}{p_\tau^B}.
+```
+
+For a short-spread entry, the signs reverse:
+
+```math
+q_A = -\frac{500}{p_\tau^A}, \quad q_B = \frac{500}{p_\tau^B}.
+```
+
+Using these signed quantities, daily PnL is
+
+```math
+\text{PnL}_t = q_A(p_t^A - p_{t-1}^A) + q_B(p_t^B - p_{t-1}^B),
+```
+
+and the dashboard plots cumulative PnL over time. The first chart shows the raw price series in their original trading currencies and marks long entries, short entries, and exits.
 
 ## References
 
-1. Pairs Trading Quantitative Methods and Analysis
-2. Cochrane, 2005, Asset Pricing
+1. Cochrane, J. H. (2005). *Asset Pricing*. Princeton University Press.
 
-### Tech Stack
-
-This site is built with Astro, JS, dashboards built with ...
-
-
+2. Vidyamurthy, G. (2004). *Pairs Trading: Quantitative Methods and Analysis*. Wiley.

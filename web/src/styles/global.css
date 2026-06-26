@@ -1,11 +1,11 @@
 :root {
   color-scheme: light;
-  --background: #f7f5ef;
-  --foreground: #17130d;
-  --muted: #6f675c;
-  --surface: #fffdf7;
-  --border: #dfd7c7;
-  --accent: #1f5f4a;
+  --background: #ffffff;
+  --foreground: #111111;
+  --muted: #555555;
+  --surface: #ffffff;
+  --border: #dddddd;
+  --accent: #333333;
 }
 
 * {
@@ -17,7 +17,7 @@ body {
   min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.6;
 }
 
@@ -26,13 +26,13 @@ a {
 }
 
 .site-header {
-  padding: 2rem 1rem 1rem;
+  padding: 1.5rem 1rem 0.5rem;
 }
 
 .site-nav {
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
 }
 
@@ -40,30 +40,32 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 6.5rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
+  border: 0;
+  background: transparent;
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 0.95rem;
-  font-weight: 650;
-  padding: 0.65rem 1.1rem;
+  font-weight: 500;
+  padding: 0;
   text-decoration: none;
-  transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  transition: color 120ms ease;
 }
 
 .nav-button:hover,
 .nav-button:focus-visible {
-  border-color: var(--accent);
-  color: var(--accent);
-  transform: translateY(-1px);
+  color: var(--muted);
 }
 
 .page-shell {
   width: min(100% - 2rem, 760px);
   margin: 0 auto;
-  padding: 3rem 0 5rem;
+  padding: 2.5rem 0 5rem;
+}
+
+.dashboard-shell {
+  width: min(100% - 2rem, 1120px);
+  margin: 0 auto;
+  padding: 2.5rem 0 5rem;
 }
 
 .hero-shell {
@@ -71,6 +73,76 @@ a {
   display: grid;
   align-content: center;
   text-align: center;
+}
+
+.dashboard-intro {
+  max-width: 42rem;
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.dashboard-title {
+  max-width: 800px;
+  margin: 0 0 1rem;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.dashboard-note {
+  max-width: 46rem;
+  margin: -0.75rem 0 1.5rem;
+  color: var(--muted);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.95rem;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 0;
+}
+
+.controls label {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 500;
+}
+
+.controls span {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.controls input {
+  width: 100%;
+}
+
+.chart-card,
+.dashboard-error {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.chart-card {
+  min-height: 28rem;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.dashboard-error {
+  color: #991b1b;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 1rem;
 }
 
 .eyebrow {
@@ -91,14 +163,14 @@ h3 {
 
 h1 {
   margin: 0 0 1rem;
-  font-size: clamp(2.5rem, 8vw, 5.5rem);
-  letter-spacing: -0.06em;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  letter-spacing: -0.03em;
 }
 
 .prose h2 {
   margin-top: 2.5rem;
-  font-size: clamp(1.75rem, 5vw, 2.6rem);
-  letter-spacing: -0.04em;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  letter-spacing: -0.02em;
 }
 
 .prose h3 {
@@ -118,6 +190,16 @@ h1 {
   padding-left: 1rem;
 }
 
+.prose figure {
+  margin: 2rem 0;
+}
+
+.prose img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .prose code {
   font-size: 0.95em;
 }
@@ -125,7 +207,6 @@ h1 {
 .prose pre {
   overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: 1rem;
   background: var(--surface);
   padding: 1rem;
 }
@@ -134,4 +215,10 @@ h1 {
   overflow-x: auto;
   overflow-y: hidden;
   padding: 0.5rem 0;
+}
+
+@media (max-width: 760px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
 }
