@@ -105,7 +105,33 @@ A protection measure sometimes put in place is incorporating a maximum holding p
 
 __What does it mean to enter / exit the position?__ When we enter a position, we __long__ the security that is under priced and __short__ the security that is over priced. The conditions for entering and exiting can be set as parameters in our trading algorithm. Historic testing can also inform what our thresholds should be in live trading. Different thresholds can change our total PnL on historic data, as evidenced in our dashboard.
 
-As new data arrives we repeat this process, updating our rolling window, recomputing our regression parameters, characterizing our spread, and deciding if we should make an enter / exit call. 
+As new data arrives we repeat this process, updating our rolling window, recomputing our regression parameters, characterizing our spread, and deciding if we should make an enter, exit, or do nothing call. 
+
+```math
+
+\text{\small estimate } \mu, \gamma
+
+\rightarrow
+
+\text{\small observe } \epsilon_t
+
+\rightarrow
+
+\text{\small determine thresholds}  
+
+\rightarrow
+
+p_{t+1} \ \text{\small arrives}
+
+\rightarrow
+
+\text{\small enter/exit/hold}
+
+\rightarrow
+
+\ \cdots
+```
+> We estimate $$ \mu $$ and $$ \gamma $$ using the data from $$ \{t-L, t \} $$ where $$ L $$ is the size of our rolling window. At time $$ t+1 $$, it they are estimated using data for points at $$ \{ t - L + 1, t+1 \} $$
 
 ### Desinging a Trading Strategy
 
@@ -124,7 +150,9 @@ Another question, for our exit conditions, should it be based on the spread at e
 
 The above two questions also have interactions between each other, which is something to consider.
 
-In a scenario where the two securities being traded are not as obviously related, we may also have to do extensive testing on their related movement through cointegration testing.
+In a scenario where the two securities being traded are not as obviously related, we may also have to do extensive testing on their related movement through cointegration testing. In ours, we refrain from cointegration testing because of the nature of the securities.
+
+### Case Study
 
 ### Live Trading
 
@@ -134,42 +162,17 @@ In live trading we need to account for realities of actualizing trades. This cut
 - cost of sourcing live data
 
 
-```math
-\text{estimate } \hat{\mu},\hat{\gamma}
-
-\rightarrow
-
-\text{compute spread}
-
-\rightarrow
-
-\text{compute z-score}
-
-\rightarrow
-
-\text{enter/exit/hold}
-
-\rightarrow
-
-\text{move window forward}
-
-\rightarrow
-
-\text{repeat.}
-```
 
 
+### Theorizing Spread Dynamics
 
-
-
-## Code Walkthrough
 
 ## References
 
 1. Pairs Trading Quantitative Methods and Analysis
 2. Cochrane, 2005, Asset Pricing
 
-## Tech Stack
+### Tech Stack
 
 This site is built with Astro, JS, dashboards built with ...
 
