@@ -278,7 +278,7 @@ where the base case, $$ \text{CumPnL}_0 = 0 $$.
 
 The first chart overlays SHOP.TO with SHOP converted to CAD and shows the implied entry and exit bands. The second shows our cumulative PnL overtime with this strategy, in CAD.
 
-### Closing the Spread: FX Influence on PnL and Market Neutrality
+## Closing the Spread: FX Influence on PnL and Market Neutrality
 
 In our case of trading pairs in both CAD and USD, we also subject our spread behaviour to the movement in the foreign exchange (FX) rate.
 
