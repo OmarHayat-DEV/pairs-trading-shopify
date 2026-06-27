@@ -38,7 +38,7 @@ In the introduction, we mentioned that we want to find stocks that react in tand
  p_t^A = \gamma \cdot p_t^B
 ```
 
-where $$ p_t^A $$ and $$ p_t^B  = p_t^{FX} \cdot p_t^{B_{USD}} $$ denote price at time $$ t $$ in CAD and $$ \beta > 0 $$ denotes some scalar. If we have evidence to believe this relationship, our arbitrage opportunity comes from betting on the deviation from this relationship, expecting it to revert.
+where $$ p_t^A $$ and $$ p_t^B  = p_t^{FX} \cdot p_t^{B_{USD}} $$ denote price at time $$ t $$ in CAD and $$ \gamma > 0 $$ denotes some scalar. If we have evidence to believe this relationship, our arbitrage opportunity comes from betting on the deviation from this relationship, expecting it to revert.
 
 This model however is limiting in its descriptive power for a price series. For example, it forces a strict equilibrium around $$ 0 $$. In practice, our securities might be centered around a shared long term mean, $$ \mu > 0 $$, and our trading signal becomes deviation from this mean. Mathematically this translates to,
 
@@ -58,19 +58,24 @@ For example, a $$ \$ 50 $$ raw deviation can mean drastically different things d
 
 This is why often log series are used in place of raw price series. If instead we let $$ y_t = \text{log} (p_t^A) $$ and $$ x_t = \text{log} (p_t^B) $$, then our model becomes,
 
-<figure>
-  <img src="../images/log-price-series-2yr.svg" alt="Log price series over the last two years">
-</figure>
+
 
 ```math
 y_t = \gamma \cdot x_t + \mu + \epsilon_t
 ```
+Visualising the log price series, $$ \text{log}(p_t^A) $$ and $$ \text{log}(p_t^B) $$, we see more stability in the absolute movement of the series
 
-where the spread, $$ \epsilon_t $$, now represents the deviation between the log series as described in our model. Isolating for it, we have that,
+<figure>
+  <img src="../images/log-price-series-2yr.svg" alt="Log price series over the last two years">
+</figure>
+
+The spread, $$ \epsilon_t $$, now represents the deviation between the log series as described in our model. Isolating for it, we have that,
 
 ```math
 \epsilon_t = y_t - \gamma x_t - \mu
 ```
+
+
 
 In summary, we first defined an empirical model for how our log price series relate to each other via the linear relationship with estimatable parameters $$ \gamma $$ and $$ \mu $$. Then with these parameters we identify our spread series $$ \epsilon_t $$. 
 
@@ -187,6 +192,7 @@ In live trading we need to account for realities of actualizing trades. This cut
 - cost of sourcing live data
 
 
+
 ## Dashboard 
 
 The dashboard gives a simple interactive backtest of the rolling-window strategy described above using the last two years of data. It offers three parameters: 
@@ -271,6 +277,93 @@ q_{B,t-1}(p_t^B - p_{t-1}^B)
 where the base case, $$ \text{CumPnL}_0 = 0 $$.
 
 The first chart overlays SHOP.TO with SHOP converted to CAD and shows the implied entry and exit bands. The second shows our cumulative PnL overtime with this strategy, in CAD.
+
+### Closing the Spread: FX Influence on PnL and Market Neutrality
+
+In our case of trading pairs in both CAD and USD, we also subject our spread behaviour to the movement in the foreign exchange (FX) rate.
+
+Consider this example. We enter a trade at time $$ t $$ and purchase:
+- 1 SHOP.TO at  $$ \$ 100 \text{ CAD}$$
+- 1 SHOP at $$ \$ 65 \text{ USD}$$
+
+The CAD to USD echange rate, $$ \text{CADUSD} $$, at this time is $$0.7$$. So we observe a spread of,
+
+```math
+\text{Spread}_{entry} =100 - 65 (\frac{1}{0.7}) = 100 - 92.86 = 7.14 \text{ CAD}
+```
+To enter this trade we __short__ SHOP.TO, borrowing $$ \$ 100 \text{ CAD}$$, and __long__ SHOP by first exchanging $$ 65 \cdot \frac{1}{0.7} = 92.86 $$ of our CAD for $$ \$ 65 \text{ USD} $$. Our account is left with $$ \$ 7.14 \text{ CAD} $$ and our PnL in CAD at entry is,
+
+```math
+\begin{align*}
+
+\text{PnL}_{\text{entry}} &= (-\text{SHOP.TO} + \frac{\text{SHOP}}{FX_{CADUSD}} ) + 7.14  \\
+                          &= (-100 + 92.86) + 7.14 \\ 
+                          &= 0
+\end{align*}
+```
+
+Now we can ask ourselves, *what can close this spread?* and _how does it influence our PnL_? 
+
+In typical pairs trading, the movement of our spread should be independent of external market factors and only dependent on the two securities relationship to one another. This is known as being __market neutral__. 
+
+We consider two cases of how the spread dynamic and total PnL in our scenario are calculated under movement in the FX rate alone and under movement in both the FX rate and price series.
+
+#### Closing the Spread Case 1: Movement in the FX Rate and Price Series
+Imagine at $$ t + 1 $$ that, 
+
+- the FX rate moves to $$ 1.0 $$
+- SHOP moves to $$ \$ 100 \text{ USD} $$
+
+Our spread has closed since,
+```math
+100 \text{ CAD} - 100 \text{ USD} \cdot 1 \frac{\text{ CAD}}{\text{ USD}} = 0.
+```
+
+To exit, we sell our SHOP position, convert it to CAD, and pay off the SHOP.TO we borrowed at entry. We realize our PnL in CAD as,
+
+```math
+\begin{align*}
+\text{PnL}_{exit} &= (-\text{SHOP.TO} + \frac{\text{SHOP}}{FX_{CADUSD}} ) + 7.14 \\
+ &= (-100 + 100) + 7.14 \\
+ &= 7.14 \text{ CAD}
+\end{align*}
+```
+So our we add to our cumulative PnL $$ 7.14 \text{ CAD}$$ from closing this trade.
+
+Note however, that the net increase in our SHOP leg was $$ \$ 35 \text{ USD}$$.  However, despite this increase, the FX rate moved in favour of CAD. So to the CAD investor, their total PnL is adjusted for this loss in strength of USD.
+
+#### Closing the Spread Case 2: No FX Movement 
+
+Image at $$ t+1 $$ that,
+- SHOP moves to $$ \$ 70 \text{ USD}$$
+- FX rate stays at $$ 0.7 $$
+
+Now we realise our PnL in CAD as,
+```math
+\begin{align*}
+\text{PnL}_{exit} &= (-\text{SHOP.TO} + \frac{\text{SHOP}}{FX_{CADUSD}} ) + 7.14 \\
+ &= (-100 + 100) + 7.14 \\
+ &= 7.14 \text{ CAD}
+\end{align*}
+```
+exactly the same as in our case where both the FX and price series for the US leg moved.
+
+Now however, our US leg has a net dollar change of $$ \$ 5 \text{ USD}$$.
+
+#### Conclusion
+
+Between the two cases, whether our US leg has a local PnL of $$  \$ 35 $$ or $$ \$ 5$$, to us the CAD investor, we realize the same PnL identified by our spread at entry time.
+
+Though we are pairs trading SHOP.TO and SHOP, we are unheadged against movement in the FX series. So the forces that can close our spread are:
+
+- movement in the SHOP.TO series
+- movement in the SHOP series
+- movement in the FX series
+
+Though any of these combinations might display variable local PnL on a leg, our cumulative PnL is determined by the spread identified in CAD at entry time, regardless of how the spread closes.
+
+
+
 
 ## References
 
