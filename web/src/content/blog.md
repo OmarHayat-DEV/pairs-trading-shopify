@@ -346,9 +346,13 @@ Now we realise our PnL in CAD as,
  &= 7.14 \text{ CAD}
 \end{align*}
 ```
-exactly the same as in our case where both the FX and price series for the US leg moved.
+exactly the same as in our case where both the FX and price series for the US leg moved. Now however, our US leg has a net dollar change of $$ \$ 5 \text{ USD}$$.
 
-Now however, our US leg has a net dollar change of $$ \$ 5 \text{ USD}$$.
+#### Maintaining Position in CAD
+
+There is one important caveat here, we always maintained our position in CAD to ensure that our theoretical spread matches our actualized spread. 
+
+If in **Case 1**, we converted the entirety of our $$ \$ 100 \text{ CAD}$$ to $$ \$ 70 \text{ USD}$$, and we held $$ \$ 5 \text{ USD} $$, then at closing time would actualize $$ \$ 5 \text{ CAD} $$ in PnL. Not the $$ 7.14 $$ our spread at entry assumed.
 
 #### Conclusion
 
@@ -360,9 +364,7 @@ Though we are pairs trading SHOP.TO and SHOP, we are unheadged against movement 
 - movement in the SHOP series
 - movement in the FX series
 
-Though any of these combinations might display variable local PnL on a leg, our cumulative PnL is determined by the spread identified in CAD at entry time, regardless of how the spread closes.
-
-
+Though any of these combinations might display variable local PnL on a leg, our cumulative PnL is determined by the spread identified in CAD at entry time, regardless of how the spread closes, as long as we maintain our position in CAD.
 
 
 ## References
