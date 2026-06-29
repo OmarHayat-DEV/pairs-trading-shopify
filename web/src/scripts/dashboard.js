@@ -1,5 +1,7 @@
 import Plotly from "plotly.js-dist-min";
 
+import { enter, legPnl, mean, ols, spread, stdev, usdToCad } from "./math-engine.js";
+
 const GROSS = 1000;
 const DATA_URL = `${baseUrl()}data/shop_pairs_data_2yr.csv`;
 
@@ -37,46 +39,16 @@ function parseCsv(text) {
       };
     })
     .filter((d) => d.fx > 0 && d.shop > 0 && d.shopTo > 0)
-    .map((d) => ({
-      ...d,
-      shopCad: d.shop / d.fx,
-      logShopCad: Math.log(d.shop / d.fx),
-      logShopTo: Math.log(d.shopTo),
-    }));
-}
+    .map((d) => {
+      const shopCad = usdToCad(d.shop, d.fx);
 
-function ols(window) {
-  const n = window.length;
-  const xMean = sum(window, "logShopCad") / n;
-  const yMean = sum(window, "logShopTo") / n;
-  let cov = 0;
-  let variance = 0;
-
-  for (const row of window) {
-    const dx = row.logShopCad - xMean;
-    cov += dx * (row.logShopTo - yMean);
-    variance += dx * dx;
-  }
-
-  const gamma = variance === 0 ? 0 : cov / variance;
-  return { gamma, mu: yMean - gamma * xMean };
-}
-
-function sum(values, key) {
-  return values.reduce((total, row) => total + row[key], 0);
-}
-
-function mean(values) {
-  return values.reduce((total, value) => total + value, 0) / values.length;
-}
-
-function stdev(values, valueMean) {
-  const variance = values.reduce((total, value) => total + (value - valueMean) ** 2, 0) / values.length;
-  return Math.sqrt(variance);
-}
-
-function spread(row, fit) {
-  return row.logShopTo - fit.gamma * row.logShopCad - fit.mu;
+      return {
+        ...d,
+        shopCad,
+        logShopCad: Math.log(shopCad),
+        logShopTo: Math.log(d.shopTo),
+      };
+    });
 }
 
 function simulate({ lookback, entryZ, exitZ }) {
@@ -100,7 +72,7 @@ function simulate({ lookback, entryZ, exitZ }) {
     const prev = rows[i - 1];
 
     if (position) {
-      pnl += position.qtyA * (row.shopTo - prev.shopTo) + position.qtyB * (row.shopCad - prev.shopCad);
+      pnl += legPnl(position.qtyA, prev.shopTo, row.shopTo) + legPnl(position.qtyB, prev.shopCad, row.shopCad);
     }
 
     const window = rows.slice(i - lookback, i);
@@ -121,30 +93,17 @@ function simulate({ lookback, entryZ, exitZ }) {
       exits.push(marker(row));
       position = null;
     } else if (!position && z <= -entryZ) {
-      position = enter(row, 1);
+      position = enter(row, 1, GROSS);
       longSpreadEntries.push(marker(row));
     } else if (!position && z >= entryZ) {
-      position = enter(row, -1);
+      position = enter(row, -1, GROSS);
       shortSpreadEntries.push(marker(row));
     }
 
     cumulativePnl[i] = pnl;
   }
 
-  for (let i = 1; i < cumulativePnl.length; i += 1) {
-    if (cumulativePnl[i] === 0 && i < lookback) continue;
-    if (cumulativePnl[i] === 0) cumulativePnl[i] = cumulativePnl[i - 1];
-  }
-
   return { dates, cumulativePnl, longSpreadEntries, shortSpreadEntries, exits, bands };
-}
-
-function enter(row, direction) {
-  const leg = GROSS / 2;
-  return {
-    qtyA: direction * (leg / row.shopTo),
-    qtyB: -direction * (leg / row.shopCad),
-  };
 }
 
 function marker(row) {
