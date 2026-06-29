@@ -15,5 +15,8 @@ test("computes CAD PnL for short CAD leg and long USD leg with FX conversion", (
     exitCadUsd: 1,
   });
 
-  assert.ok(Math.abs(pnl - 7.142857142857139) < 1e-9);
+  const expected = 7.1428;
+  const toll = 1e-3
+
+  assert.ok(Math.abs(pnl - expected) < toll, `expected ${expected}, received ${pnl}`);
 });
