@@ -118,7 +118,7 @@ function draw() {
 
   els.lookbackValue.value = lookback;
   els.entryValue.value = entryZ.toFixed(1);
-  els.exitValue.value = exitZ.toFixed(1);
+  els.exitValue.value = exitZ.toFixed(2);
 
   Plotly.react(
     els.band,
